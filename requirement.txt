@@ -1,0 +1,14 @@
+flask
+flask-cors
+faiss-cpu
+sentence-transformers
+langchain
+langchain-community
+numpy
+torch
+transformers
+gtts
+pydub
+SpeechRecognition
+gunicorn
+groq

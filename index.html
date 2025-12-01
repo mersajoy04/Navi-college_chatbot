@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>College Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        input, button {
+            font-size: 1rem;
+            padding: 10px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        #response {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            background-color: #eef;
+            padding: 15px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>College Chatbot</h1>
+    <input type="text" id="userInput" placeholder="Ask something..." />
+    <button onclick="sendQuery()">Ask</button>
+
+    <div id="response"></div>
+
+    <script>
+    // Show greeting on page load
+    window.onload = () => {
+        const responseDiv = document.getElementById("response");
+        const greeting = getGreeting();
+        responseDiv.textContent = `${greeting} 👋\nHow can I help you today?`;
+    };
+
+    function getGreeting() {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning!";
+        if (hour < 17) return "Good afternoon!";
+        if (hour < 20) return "Good evening!";
+        return "Hello!";
+    }
+
+    async function sendQuery() {
+        const userInput = document.getElementById("userInput").value;
+        const responseDiv = document.getElementById("response");
+        responseDiv.textContent = "Thinking...";
+
+        try {
+            const res = await fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: userInput })
+            });
+
+            const data = await res.json();
+            responseDiv.textContent = data.answer || "No answer returned.";
+        } catch (err) {
+            responseDiv.textContent = "Error: " + err.message;
+        }
+    }
+</script>
+
+</body>
+</html>
