@@ -13,6 +13,12 @@ from flask_cors import CORS
 from threading import Thread
 import traceback
 import re
+
+import replicate
+import os
+
+REPLICATE_API_TOKEN = os.getenv("REPLICATE_API_TOKEN")
+
 os.makedirs("static", exist_ok=True)
 # ---------------------------
 # App setup
@@ -26,7 +32,7 @@ STATIC_FOLDER = os.path.join("mainproject", "www.stvincentngp.edu.in")
 # Load models and vector store
 # ---------------------------
 print("🔄 Loading model and vector store...")
-llm = pipeline("text-generation", model="mistralai/Mistral-7B-Instruct-v0.1", device=-1)
+#llm = pipeline("text-generation", model="mistralai/Mistral-7B-Instruct-v0.1", device=-1)
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 db = FAISS_DB.load_local("college_vector_db", embeddings, allow_dangerous_deserialization=True)
 sentiment_analyzer = pipeline("sentiment-analysis")
@@ -135,6 +141,21 @@ def _is_clarifying_response(text: str) -> bool:
     if re.match(r'^(i need|please provide|could you|please tell|i don\'t have)', t.lower()):
         return True
     return False
+    
+def call_mistral_replicate(prompt):
+    try:
+        output = replicate.run(
+            "mistralai/mistral-7b-instruct-v0.1",
+            input={
+                "prompt": prompt,
+                "temperature": 0.1,
+                "max_new_tokens": 200
+            }
+        )
+        return "".join(output)
+    except Exception as e:
+        print("❌ Replicate API error:", e)
+        return "Sorry, the model failed to generate a response."
 
 def generate_answer(query):
     """Generate an answer (used by both voice and text routes)."""
@@ -178,22 +199,9 @@ Context:
 User: {query}
 Answer:
 """
-        print("🧠 Running model generation (deterministic)...")
-        result = llm(
-            prompt,
-            max_new_tokens=160,
-            do_sample=False,
-            temperature=0.0,
-            top_k=0,
-            return_full_text=False
-        )
 
-        if isinstance(result, list) and result and "generated_text" in result[0]:
-            raw_text = result[0]["generated_text"]
-        else:
-            raw_text = str(result)
-
-        answer_text = raw_text.split("Answer:")[-1].strip()
+        print("🧠 Calling Mistral-7B on Replicate…")
+        answer_text = call_mistral_replicate(prompt).strip()
         print("📝 Raw model output preview:", answer_text[:300])
 
         if _is_clarifying_response(answer_text):
@@ -276,3 +284,4 @@ def get_result(task_id):
 if __name__ == "__main__":
     print("🚀 Flask chatbot running at http://127.0.0.1:5000")
     app.run(host="0.0.0.0", port=5000, debug=True)
+
