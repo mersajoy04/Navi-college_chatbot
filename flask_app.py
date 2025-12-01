@@ -34,7 +34,7 @@ STATIC_FOLDER = os.path.join("mainproject", "www.stvincentngp.edu.in")
 print("🔄 Loading model and vector store...")
 #llm = pipeline("text-generation", model="mistralai/Mistral-7B-Instruct-v0.1", device=-1)
 #embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-MiniLM-L3-v2")
 db = FAISS_DB.load_local("college_vector_db", embeddings, allow_dangerous_deserialization=True)
 sentiment_analyzer = pipeline("sentiment-analysis")
 print("✅ Model and Vector store loaded successfully.")
@@ -285,5 +285,6 @@ def get_result(task_id):
 if __name__ == "__main__":
     print("🚀 Flask chatbot running at http://127.0.0.1:5000")
     app.run(host="0.0.0.0", port=5000, debug=True)
+
 
 
