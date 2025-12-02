@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory
 from langchain_community.vectorstores import FAISS as FAISS_DB
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from transformers import pipeline
 from gtts import gTTS
 import speech_recognition as sr
 import os
@@ -36,7 +35,7 @@ print("🔄 Loading model and vector store...")
 #embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-MiniLM-L3-v2")
 db = FAISS_DB.load_local("college_vector_db", embeddings, allow_dangerous_deserialization=True)
-sentiment_analyzer = pipeline("sentiment-analysis")
+#sentiment_analyzer = pipeline("sentiment-analysis")
 print("✅ Model and Vector store loaded successfully.")
 
 # ---------------------------
@@ -161,12 +160,8 @@ def call_mistral_replicate(prompt):
 def generate_answer(query):
     """Generate an answer (used by both voice and text routes)."""
     try:
-        sentiment_result = sentiment_analyzer(query)[0]
-        sentiment_label = sentiment_result.get('label', '')
-        greeting = {
-            "POSITIVE": "I’m glad to hear from you! ",
-        }.get(sentiment_label, "Okay, let's see what I can find for you. ")
-
+        greeting = "Here is the information you requested: "
+        
         cached = get_cached_answer(query)
         if cached:
             final_answer = greeting + f"(From memory) {cached}"
@@ -285,6 +280,7 @@ def get_result(task_id):
 if __name__ == "__main__":
     print("🚀 Flask chatbot running at http://127.0.0.1:5000")
     app.run(host="0.0.0.0", port=5000, debug=True)
+
 
 
 
